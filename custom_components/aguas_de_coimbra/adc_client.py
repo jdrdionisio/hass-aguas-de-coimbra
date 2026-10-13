@@ -44,6 +44,7 @@ class AdCClient:
         self._codigo_marca = None
         self._codigo_produto = None
         self._subscription_id = None
+        self._subscription_ids = []
         self._numero_contador = None
         self._diameter = None
         self._token = None
@@ -88,8 +89,8 @@ class AdCClient:
             "Content-Type": "application/json",
         }
 
-    async def get_subscription_id(self) -> list:
-        """Fetch account subscription ID"""
+    async def get_subscription_ids(self) -> list:
+        """Fetch the subscription IDs of the account"""
 
         subscription_url = (
             f"{BALCAO_DIGITAL_URL}uPortal2/coimbra/Subscription/listSubscriptions"
@@ -102,44 +103,69 @@ class AdCClient:
                 raise Exception("Failed to fetch subscription ID")
 
             data = await resp.json()
-            self._subscription_id = data[0]["subscriptionId"]
+            self._subscription_ids = [
+                sub["subscriptionId"] for sub in data if sub.get("subscriptionId")
+            ]
 
     async def get_meter_details(self) -> dict:
-        """Fetch meter details using subscription ID"""
+        """Fetch meter details, trying each subscription of the account.
+
+        An account can have several subscriptions and not all of them have a
+        meter: getContadores returns HTTP 500 for a subscription without one.
+        """
 
         details_url = f"{BALCAO_DIGITAL_URL}uPortal2/coimbra/leituras/getContadores"
 
-        if not self._subscription_id:
-            await self.get_subscription_id()
+        if not self._subscription_ids:
+            await self.get_subscription_ids()
 
-        query_params = {"subscriptionId": self._subscription_id}
+        # Prefer the subscription that worked before, if any.
+        candidates = list(self._subscription_ids)
+        if self._subscription_id in candidates:
+            candidates.remove(self._subscription_id)
+            candidates.insert(0, self._subscription_id)
+
         headers = await self._headers()
-        async with self._session.get(
-            details_url, headers=headers, params=query_params
-        ) as resp:
-            if resp.status != 200:
-                _LOGGER.error("Failed to fetch meter details. Status code: %s", resp.status)
-                # revoke token if it fails
-                self._token = None
-                raise Exception("Failed to fetch meter details")
+        last_status = None
+        for subscription_id in candidates:
+            query_params = {"subscriptionId": subscription_id}
+            async with self._session.get(
+                details_url, headers=headers, params=query_params
+            ) as resp:
+                if resp.status != 200:
+                    last_status = resp.status
+                    _LOGGER.debug(
+                        "getContadores for subscription %s returned HTTP %s",
+                        subscription_id,
+                        resp.status,
+                    )
+                    continue
 
-            data = await resp.json()
-            self._codigo_marca = data[0]["chaveContador"]["codigoMarca"]
-            self._codigo_produto = data[0]["chaveContador"]["codigoProduto"]
-            self._numero_contador = data[0]["chaveContador"]["numeroContador"]
+                data = await resp.json()
+                self._subscription_id = subscription_id
+                self._codigo_marca = data[0]["chaveContador"]["codigoMarca"]
+                self._codigo_produto = data[0]["chaveContador"]["codigoProduto"]
+                self._numero_contador = data[0]["chaveContador"]["numeroContador"]
 
-            try:
-                diameter = data[0]["descModelo"]
-                diameter = diameter.split("/")[1].strip()
-                diameter = int(diameter)
-            except (IndexError, ValueError):
-                _LOGGER.warning(
-                    "Could not parse diameter from model description, using default value (15mm)"
-                )
-                # If the diameter cannot be parsed, set a default value
-                diameter = 15
-            self._diameter = diameter
-            return data
+                try:
+                    diameter = data[0]["descModelo"]
+                    diameter = diameter.split("/")[1].strip()
+                    diameter = int(diameter)
+                except (IndexError, ValueError):
+                    _LOGGER.warning(
+                        "Could not parse diameter from model description, using default value (15mm)"
+                    )
+                    # If the diameter cannot be parsed, set a default value
+                    diameter = 15
+                self._diameter = diameter
+                return data
+
+        _LOGGER.error(
+            "Failed to fetch meter details for any subscription (ids=%s, last status=%s)",
+            self._subscription_ids,
+            last_status,
+        )
+        raise Exception("Failed to fetch meter details")
 
     async def get_last_meter_reading(self) -> float:
         """Fetch latest meter reading"""
@@ -151,8 +177,8 @@ class AdCClient:
 
         usage_url = f"{BALCAO_DIGITAL_URL}uPortal2/coimbra/History/consumo/carga"
 
-        if not self._subscription_id:
-            await self.get_subscription_id()
+        if not self._subscription_ids:
+            await self.get_subscription_ids()
         if (
             not self._codigo_marca
             or not self._codigo_produto
