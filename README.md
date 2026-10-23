@@ -1,5 +1,6 @@
 # Águas de Coimbra - Home Assistant Integration
 
+[![Validate with hassfest](https://github.com/jdrdionisio/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/jdrdionisio/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml)
 ![Version](https://img.shields.io/github/v/tag/jdrdionisio/hass-aguas-de-coimbra?label=version)
 
 **Disclaimer:** This integration is not affiliated with Águas de Coimbra.
@@ -10,7 +11,7 @@ Personal fork of [andre19rodrigues/hass-aguas-de-coimbra](https://github.com/and
 - **Meter lookup across subscriptions.** `getContadores` answers HTTP 500 for a subscription without a meter, so the chosen subscription is tried first and, if it has no meter, the remaining ones are tried before giving up.
 - **Token renewal.** The portal returns the token expiry in milliseconds; the original comparison in seconds made the token look permanently valid, so every request returned 401 until Home Assistant was restarted. The token is now renewed when it expires, and a rejected token is retried once after a fresh login.
 
-The fork does not run CI. There is no validation badge because there is no automation behind it — run `hassfest` yourself if you need that guarantee.
+The hassfest badge runs from this fork's own `.github/workflows/hassfest.yaml`, on every push, so it reports on the code in this repository and not on upstream's. GitHub disables workflows in forks by default: if the badge shows *no status*, enable them once under the repository's **Actions** tab.
 
 This Home Assistant integration retrieves telemetry data from your water meter as published on the [Águas de Coimbra website](https://bdigital.aguasdecoimbra.pt/uPortal2/coimbra/index.html).
 
