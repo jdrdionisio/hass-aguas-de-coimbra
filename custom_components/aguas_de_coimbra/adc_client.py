@@ -75,7 +75,8 @@ class AdCClient:
     def _is_token_valid(self):
         """Check if the token is still valid."""
         if self._token and self._token_expiration_date:
-            return dt_util.now().timestamp() < self._token_expiration_date
+            # expirationDate is a millisecond timestamp
+            return dt_util.now().timestamp() * 1000 < self._token_expiration_date
         return False
 
     async def _headers(self) -> dict:
@@ -195,16 +196,24 @@ class AdCClient:
             "finalDate": final_day if final_day else initial_day,
         }
 
-        headers = await self._headers()
-        async with self._session.get(
-            usage_url, headers=headers, params=query_params
-        ) as resp:
-            if resp.status != 200:
-                _LOGGER.error("Failed to fetch usage data. Status code: %s", resp.status)
-                raise Exception("Failed to fetch usage data")
+        for attempt in (1, 2):
+            headers = await self._headers()
+            async with self._session.get(
+                usage_url, headers=headers, params=query_params
+            ) as resp:
+                if resp.status == 401 and attempt == 1:
+                    # The portal rejected the token (expired, or replaced by a
+                    # newer session): log in again and retry once.
+                    _LOGGER.debug("Usage request rejected (401), logging in again")
+                    self._token = None
+                    continue
 
-            data = await resp.json()
-            return data
+                if resp.status != 200:
+                    _LOGGER.error("Failed to fetch usage data. Status code: %s", resp.status)
+                    raise Exception("Failed to fetch usage data")
+
+                data = await resp.json()
+                return data
 
     async def get_consumption_day(self, today: bool = True) -> float:
         """Get water usage for a day. Today or yesterday"""
