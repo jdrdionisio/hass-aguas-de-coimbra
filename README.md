@@ -2,6 +2,7 @@
 
 [![Validate with hassfest](https://github.com/jdrdionisio/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/jdrdionisio/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml)
 ![Version](https://img.shields.io/github/v/tag/jdrdionisio/hass-aguas-de-coimbra?label=version)
+[![License](https://img.shields.io/github/license/jdrdionisio/hass-aguas-de-coimbra)](LICENSE)
 
 **Disclaimer:** This integration is not affiliated with Águas de Coimbra.
 
@@ -91,3 +92,10 @@ If the account has more than one subscription, a second step asks which one to f
 **Settings > Devices & Services > Águas de Coimbra > Configure**. The same screen has the credentials, the billing day, the social tariff, the subscription dropdown and the update interval (30 minutes to 6 hours, default 1 hour). Saving reloads the integration immediately; no restart is needed.
 
 The dropdown is filled live from the portal, so the portal must be reachable to open that screen. If it is not, the current subscription is kept and the remaining options can still be saved.
+
+
+## 📄 License
+
+[Apache License 2.0](LICENSE) — copyright 2025 andre19rodrigues and 2026 João Dionísio (jdrdionisio).
+
+This is a fork of [andre19rodrigues/hass-aguas-de-coimbra](https://github.com/andre19rodrigues/hass-aguas-de-coimbra), distributed under the same license. The changes made in this fork are listed in [NOTICE](NOTICE), as required by section 4(b) of the license. The original copyright notice must be kept in redistributions.

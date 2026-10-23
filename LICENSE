@@ -186,7 +186,12 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright [yyyy] [name of copyright owner]
+   Copyright 2025 andre19rodrigues
+   Copyright 2026 João Dionísio (jdrdionisio)
+
+   This file covers a fork of
+   https://github.com/andre19rodrigues/hass-aguas-de-coimbra
+   distributed under the same terms. See the NOTICE file for attribution.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

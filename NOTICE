@@ -1,0 +1,27 @@
+Aguas de Coimbra - Home Assistant integration
+
+Copyright 2025 andre19rodrigues
+Copyright 2026 João Dionísio (jdrdionisio)
+
+This product includes software developed at
+https://github.com/andre19rodrigues/hass-aguas-de-coimbra, licensed under the
+Apache License, Version 2.0.
+
+This repository is a fork of that work. The following changes were made, as
+required by section 4(b) of the License:
+
+  - the subscription to read is selectable instead of always using the first
+    one returned by listSubscriptions, and meter details fall back to the
+    remaining subscriptions when the selected one has no meter
+  - the portal token expiry is compared in milliseconds and a token rejected
+    with HTTP 401 is renewed and retried once
+  - the polling interval is configurable and defaults to one hour
+  - new last_call sensor; last_successful_refresh only advances when a request
+    actually returned data
+  - the options flow was migrated to OptionsFlowWithReload, fixing a 500 when
+    opening it on Home Assistant 2024.11 and newer
+  - hacs.json was made valid JSON and the manifest points at this fork
+
+The original copyright notice and this attribution must be retained in
+redistributions of the work or of derivative works, per sections 4(c) and 4(d)
+of the License.
