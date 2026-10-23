@@ -80,7 +80,7 @@ Updating an existing installation only means copying the folder again and restar
 
 Enter your credentials for the Águas de Coimbra portal, the billing cycle start day (default is day 1) and whether the social tariff applies. You do not choose the billing day from the portal's own data; set the day your invoice cycle starts.
 
-If the account has more than one subscription, a second step asks which one to follow, showing the subscription description and installation number. Accounts with a single subscription skip that step.
+If the account has more than one subscription, a second step asks which one to follow, showing the supply address, the description and the installation number, with the active subscription first. Accounts with a single subscription skip that step.
 
 ![configuration](https://github.com/user-attachments/assets/1d6e536f-4c3b-4cf6-ad64-98f64ff19e0a)
 

@@ -114,13 +114,27 @@ class AdCClient:
 
     @property
     def subscription_choices(self) -> dict[str, str]:
-        """Return the account subscriptions as {id: human readable label}."""
+        """Return the account subscriptions as {id: human readable label}.
+
+        The portal identifies a subscription by its address (``clientAddress``)
+        and its description; ``subscriptionId`` alone means nothing to a user.
+        Active subscriptions come first, which is the one the portal itself
+        opens by default.
+        """
         choices: dict[str, str] = {}
-        for sub in self._subscriptions:
+        subscriptions = sorted(
+            self._subscriptions, key=lambda sub: not sub.get("isActive")
+        )
+        for sub in subscriptions:
             subscription_id = sub.get("subscriptionId")
             if not subscription_id:
                 continue
-            label = sub.get("description") or str(subscription_id)
+            parts = [
+                str(value)
+                for value in (sub.get("clientAddress"), sub.get("description"))
+                if value
+            ]
+            label = " - ".join(dict.fromkeys(parts)) or f"#{subscription_id}"
             installation = sub.get("installationNumber")
             if installation:
                 label = f"{label} ({installation})"
