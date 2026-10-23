@@ -1,7 +1,10 @@
 from datetime import timedelta
 
 DOMAIN = "aguas_de_coimbra"
-DEFAULT_UPDATE_INTERVAL = timedelta(minutes=30)
+# Default poll interval. The portal publishes readings a few times a day, not
+# continuously, so a long interval costs nothing and keeps the load low.
+DEFAULT_UPDATE_INTERVAL = timedelta(minutes=60)
+UPDATE_INTERVAL_OPTIONS = (30, 60, 120, 180, 360)
 BALCAO_DIGITAL_URL = "https://bdigital.aguasdecoimbra.pt/"
 
 # --- PRICES AND FEES ---

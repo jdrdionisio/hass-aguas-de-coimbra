@@ -43,6 +43,13 @@ SENSOR_TYPES = {
         "icon": "mdi:cash",
         "device_class": SensorDeviceClass.MONETARY,
     },
+    "last_call": {
+        "name": "Last API Call",
+        "unit": None,
+        "icon": "mdi:api",
+        "device_class": SensorDeviceClass.TIMESTAMP,
+        "entity_category": EntityCategory.DIAGNOSTIC,
+    },
     "last_successful_refresh": {
         "name": "Last Successful Refresh",
         "unit": None,

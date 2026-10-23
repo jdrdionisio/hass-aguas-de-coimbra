@@ -37,7 +37,8 @@
                     "password": "Palavra-passe",
                     "billing_cycle_start_day": "Dia de início do ciclo de faturação",
                     "social_tariff": "Tarifa social",
-                    "subscription_id": "Subscrição"
+                    "subscription_id": "Subscrição",
+                    "update_interval": "Intervalo de atualização"
                 }
             }
         },

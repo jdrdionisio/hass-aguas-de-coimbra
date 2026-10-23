@@ -27,16 +27,17 @@ The integration comprises the following sensors:
 
 | Sensor Name | Unit | Description | Max. update frequency |
 |----------------|---------------|------------------|------------|
-| `today_consumption` | Litre (L) | Today's water consumption. Sum of all the readings available for the day — typically one per hour, but often inconsistent, with readings occurring only a few times per day. | Every 30 minutes |
-| `yesterday_consumption` | Litre (L) | Yesterday's water consumption. Sum of all readings from the previous day. | Once per day |
-| `meter_reading` | Cubic meter (m³) | Official meter reading from Águas de Coimbra. Updated once per day around midnight. Although stored as a float, the meter appears to report only the integer part. This is the value that will appear on your invoice. | Once per day |
-| `billing_cycle_consumption` | Cubic meter (m³) | Water consumption during the current billing cycle. | Every 30 minutes |
-| `billing_cycle_cost` | Euro (€)  | Cost of the billing cycle. | Every 30 minutes |
-| `last_successful_refresh` | N/A  | Timestamp of the last API call to Águas de Coimbra. | Every 30 minutes |
+| `today_consumption` | Litre (L) | Today's water consumption. Sum of all the readings available for the day — typically one per hour, but often inconsistent, with readings occurring only a few times per day. | Every poll |
+| `yesterday_consumption` | Litre (L) | Yesterday's water consumption. Sum of all readings from the previous day. | Once per day, plus after each restart |
+| `meter_reading` | Cubic meter (m³) | Official meter reading from Águas de Coimbra. Updated once per day around midnight. Although stored as a float, the meter appears to report only the integer part. This is the value that will appear on your invoice. | Once per day, plus after each restart |
+| `billing_cycle_consumption` | Cubic meter (m³) | Water consumption during the current billing cycle. | Every poll |
+| `billing_cycle_cost` | Euro (€)  | Cost of the billing cycle. | Every poll |
+| `last_call` | N/A  | Timestamp of the last attempt to reach the portal, whether it worked or not. | Every poll |
+| `last_successful_refresh` | N/A  | Timestamp of the last poll where at least one request came back with data. Stays put while the portal is failing. | Every poll |
 
 
 **Notes:** 
- - To prevent abuse of the Águas de Coimbra portal, this integration retrieves data only every 30 minutes and limits requests to essential information.
+ - To prevent abuse of the Águas de Coimbra portal, this integration polls hourly by default — configurable from 30 minutes to 6 hours — and limits requests to essential information. The portal publishes readings a few times a day, not continuously, so a shorter interval buys nothing.
  - `yesterday_consumption` is refetched after a restart and just after midnight, when the portal has not finished publishing the previous day. It can show `0` for a few hours and settle on the real value later in the morning.
  - The billing cycle cost shown is an estimate only. The actual amount on your invoice may differ due to factors such as:
    -  Missing or incomplete data;
@@ -87,6 +88,6 @@ If the account has more than one subscription, a second step asks which one to f
 
 ### Changing the subscription later
 
-**Settings > Devices & Services > Águas de Coimbra > Configure**. The same screen has the credentials, the billing day, the social tariff and the subscription dropdown. Saving reloads the integration immediately; no restart is needed.
+**Settings > Devices & Services > Águas de Coimbra > Configure**. The same screen has the credentials, the billing day, the social tariff, the subscription dropdown and the update interval (30 minutes to 6 hours, default 1 hour). Saving reloads the integration immediately; no restart is needed.
 
 The dropdown is filled live from the portal, so the portal must be reachable to open that screen. If it is not, the current subscription is kept and the remaining options can still be saved.

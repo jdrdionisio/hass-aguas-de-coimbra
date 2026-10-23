@@ -37,7 +37,8 @@
                     "password": "Password",
                     "billing_cycle_start_day": "Billing cycle start day",
                     "social_tariff": "Social tariff",
-                    "subscription_id": "Subscription"
+                    "subscription_id": "Subscription",
+                    "update_interval": "Update interval"
                 }
             }
         },

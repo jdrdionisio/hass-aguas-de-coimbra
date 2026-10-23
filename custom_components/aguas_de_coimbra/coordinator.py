@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -16,11 +17,19 @@ class AdCCoordinator(DataUpdateCoordinator):
     """Coordinator to fetch water usage data from Aguas de Coimbra."""
 
     def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+        default_interval = int(DEFAULT_UPDATE_INTERVAL.total_seconds() // 60)
+        interval_minutes = int(
+            config_entry.options.get(
+                "update_interval",
+                config_entry.data.get("update_interval", default_interval),
+            )
+        )
+
         super().__init__(
             hass,
             _LOGGER,
             name="Aguas de Coimbra Coordinator",
-            update_interval=DEFAULT_UPDATE_INTERVAL,
+            update_interval=timedelta(minutes=interval_minutes),
         )
 
         username = config_entry.options.get(
@@ -61,6 +70,7 @@ class AdCCoordinator(DataUpdateCoordinator):
             "meter_reading": 0,
             "billing_cycle_consumption": 0,
             "billing_cycle_cost": 0,
+            "last_call": None,
             "last_successful_refresh": None,
         }
 
@@ -69,12 +79,14 @@ class AdCCoordinator(DataUpdateCoordinator):
 
         now = dt_util.now()
         today_str = now.strftime("%Y-%m-%d")
-        self._data["last_successful_refresh"] = now
+        self._data["last_call"] = now
+        fetched = False
 
         # Try to get today's consumption
         try:
             today_consumption = await self.client.get_consumption_day(today=True)
             self._data["today_consumption"] = today_consumption
+            fetched = True
         except Exception as err:
             _LOGGER.warning("Failed to fetch today's consumption: %s", err)
 
@@ -82,6 +94,7 @@ class AdCCoordinator(DataUpdateCoordinator):
         try:
             billing_cycle = await self.client.get_consumption_billing_cycle()
             self._data["billing_cycle_consumption"] = billing_cycle
+            fetched = True
         except Exception as err:
             _LOGGER.warning("Failed to fetch billing cycle consumption: %s", err)
 
@@ -100,10 +113,13 @@ class AdCCoordinator(DataUpdateCoordinator):
             # This is to avoid unnecessary API calls
             _LOGGER.debug("Fetching new yesterday_consumption and meter_reading")
 
+            daily_ok = True
             try:
                 self._cached_meter_reading = await self.client.get_last_meter_reading()
                 self._data["meter_reading"] = self._cached_meter_reading
+                fetched = True
             except Exception as err:
+                daily_ok = False
                 _LOGGER.warning("Failed to fetch last meter reading: %s", err)
 
             try:
@@ -111,15 +127,23 @@ class AdCCoordinator(DataUpdateCoordinator):
                     today=False
                 )
                 self._data["yesterday_consumption"] = self._cached_yesterday
+                fetched = True
             except Exception as err:
+                daily_ok = False
                 _LOGGER.warning("Failed to fetch yesterday's consumption: %s", err)
 
-            if now.hour >= 5:
+            if daily_ok and now.hour >= 5:
                 # Meter reading is usually updated around midnight. 
                 # "Yesterday" might take a few hours to be fully updated.
-                # Cache it only after 5 AM to allow some buffer time for the update
+                # Cache it only after 5 AM to allow some buffer time for the update,
+                # and only when both calls worked, so a failure is retried on the
+                # next poll instead of leaving the daily sensors empty until tomorrow.
                 self._last_update = today_str
         else:
             _LOGGER.debug("Using cached yesterday_consumption and meter_reading")
+
+        if fetched:
+            # Only advances when at least one request came back with data.
+            self._data["last_successful_refresh"] = now
 
         return self._data

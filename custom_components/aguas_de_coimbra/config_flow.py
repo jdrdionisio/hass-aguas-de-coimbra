@@ -13,9 +13,17 @@ from homeassistant.helpers.selector import (
 )
 
 from .adc_client import AdCClient, CannotConnect, InvalidAuth
-from .const import DOMAIN
+from .const import DEFAULT_UPDATE_INTERVAL, DOMAIN, UPDATE_INTERVAL_OPTIONS
 
 _LOGGER = logging.getLogger(__name__)
+
+INTERVAL_LABELS = {
+    30: "30 minutes",
+    60: "1 hour",
+    120: "2 hours",
+    180: "3 hours",
+    360: "6 hours",
+}
 
 
 async def _async_fetch_subscriptions(username: str, password: str) -> dict[str, str]:
@@ -37,6 +45,19 @@ def _subscription_selector(choices: dict[str, str], default: str) -> SelectSelec
             options=[
                 {"value": subscription_id, "label": label}
                 for subscription_id, label in choices.items()
+            ],
+            mode=SelectSelectorMode.DROPDOWN,
+        )
+    )
+
+
+def _interval_selector(default: int) -> SelectSelector:
+    """Return a dropdown selector for the polling interval, in minutes."""
+    return SelectSelector(
+        SelectSelectorConfig(
+            options=[
+                {"value": str(minutes), "label": INTERVAL_LABELS[minutes]}
+                for minutes in UPDATE_INTERVAL_OPTIONS
             ],
             mode=SelectSelectorMode.DROPDOWN,
         )
@@ -155,6 +176,14 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 "social_tariff", default=values.get("social_tariff", False)
             ): bool,
         }
+        interval_default = int(
+            values.get(
+                "update_interval", DEFAULT_UPDATE_INTERVAL.total_seconds() // 60
+            )
+        )
+        schema[vol.Required("update_interval", default=str(interval_default))] = (
+            _interval_selector(interval_default)
+        )
         if ids:
             schema[vol.Required("subscription_id", default=current_id)] = (
                 _subscription_selector(self._choices, current_id)
@@ -187,6 +216,11 @@ class ADCOptionsFlowHandler(config_entries.OptionsFlowWithReload):
                 options["username"] = username
                 options["password"] = password
                 options["subscription_id"] = int(chosen)
+                options["update_interval"] = int(
+                    user_input.get("update_interval")
+                    or current.get("update_interval")
+                    or DEFAULT_UPDATE_INTERVAL.total_seconds() // 60
+                )
                 return self.async_create_entry(title="", data=options)
             errors["base"] = "subscription_required"
 
