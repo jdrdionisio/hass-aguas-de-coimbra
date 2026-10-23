@@ -18,7 +18,7 @@ This Home Assistant integration retrieves telemetry data from your water meter a
 
 For precise and real-time water usage, consider installing a dedicated sensor. [Home Assistant](https://www.home-assistant.io/docs/energy/water/) provides several examples.
 
-<img width="339" height="574" alt="sensors" src="https://github.com/user-attachments/assets/2c4d2b2b-ba2a-443f-9f58-2b6bc7034eaf" />
+![Sensors and diagnostic entities created by the integration](https://raw.githubusercontent.com/jdrdionisio/hass-aguas-de-coimbra/main/images/entities.png)
 
 
 ## 💧 Sensors
@@ -85,7 +85,7 @@ Enter your credentials for the Águas de Coimbra portal, the billing cycle start
 
 If the account has more than one subscription, a second step asks which one to follow, showing the supply address, the description and the installation number, with the active subscription first. Accounts with a single subscription skip that step.
 
-![configuration](https://github.com/user-attachments/assets/1d6e536f-4c3b-4cf6-ad64-98f64ff19e0a)
+![Configuration dialog: credentials, billing cycle start day, social tariff, update interval and subscription](https://raw.githubusercontent.com/jdrdionisio/hass-aguas-de-coimbra/main/images/setup.png)
 
 ### Changing the subscription later
 
