@@ -3,7 +3,7 @@
     "config": {
         "step": {
             "user": {
-                "title": "Configure Águas de Coimbra",
+                "title": "Configurar Águas de Coimbra",
                 "description": "Introduza as credenciais da sua conta Águas de Coimbra.",
                 "data": {
                     "username": "Nome de utilizador",
@@ -11,25 +11,42 @@
                     "billing_cycle_start_day": "Dia de início do ciclo de faturação",
                     "social_tariff": "Tarifa social"
                 }
+            },
+            "subscription": {
+                "title": "Escolher a subscrição",
+                "description": "Esta conta tem mais do que uma subscrição. Escolha a que tem o contador que quer acompanhar.",
+                "data": {
+                    "subscription_id": "Subscrição"
+                }
             }
         },
         "error": {
             "invalid_auth": "As credenciais fornecidas são inválidas.",
             "cannot_connect": "Não foi possível conectar a Águas de Coimbra.",
-            "unknown": "Erro desconhecido ao conectar a Águas de Coimbra."
+            "unknown": "Erro desconhecido ao conectar a Águas de Coimbra.",
+            "no_subscriptions": "Não foi encontrada nenhuma subscrição nesta conta.",
+            "subscription_required": "Escolha uma subscrição."
         }
     },
     "options": {
         "step": {
             "init": {
-                "title": "Configure Águas de Coimbra",
+                "title": "Configurar Águas de Coimbra",
                 "data": {
                     "username": "Nome de utilizador",
                     "password": "Palavra-passe",
                     "billing_cycle_start_day": "Dia de início do ciclo de faturação",
-                    "social_tariff": "Tarifa social"
+                    "social_tariff": "Tarifa social",
+                    "subscription_id": "Subscrição"
                 }
             }
+        },
+        "error": {
+            "invalid_auth": "As credenciais fornecidas são inválidas.",
+            "cannot_connect": "Não foi possível conectar a Águas de Coimbra.",
+            "unknown": "Erro desconhecido ao conectar a Águas de Coimbra.",
+            "no_subscriptions": "Não foi encontrada nenhuma subscrição nesta conta.",
+            "subscription_required": "Escolha uma subscrição."
         }
     }
 }

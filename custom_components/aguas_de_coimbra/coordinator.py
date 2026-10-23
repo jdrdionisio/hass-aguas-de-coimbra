@@ -36,9 +36,21 @@ class AdCCoordinator(DataUpdateCoordinator):
         social_tariff = config_entry.options.get(
             "social_tariff", config_entry.data.get("social_tariff", False)
         )
+        subscription_id = config_entry.options.get(
+            "subscription_id", config_entry.data.get("subscription_id")
+        )
         session = async_get_clientsession(hass)
 
-        self.client = AdCClient(username, password, billing_day, social_tariff, session)
+        self.client = AdCClient(
+            username,
+            password,
+            billing_day,
+            social_tariff,
+            session,
+            subscription_id=(
+                int(subscription_id) if subscription_id is not None else None
+            ),
+        )
         self._cached_meter_reading = 0
         self._cached_yesterday = 0
         self._last_update = None

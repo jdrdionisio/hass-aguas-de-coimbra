@@ -11,12 +11,21 @@
                     "billing_cycle_start_day": "Billing cycle start day",
                     "social_tariff": "Social tariff"
                 }
+            },
+            "subscription": {
+                "title": "Choose the subscription",
+                "description": "This account has more than one subscription. Pick the one with the water meter you want to track.",
+                "data": {
+                    "subscription_id": "Subscription"
+                }
             }
         },
         "error": {
             "invalid_auth": "The provided credentials are invalid.",
             "cannot_connect": "Could not connect to Águas de Coimbra.",
-            "unknown": "Unknown error connecting to Águas de Coimbra."
+            "unknown": "Unknown error connecting to Águas de Coimbra.",
+            "no_subscriptions": "No subscription was found for this account.",
+            "subscription_required": "Please pick a subscription."
         }
     },
     "options": {
@@ -27,9 +36,17 @@
                     "username": "Username",
                     "password": "Password",
                     "billing_cycle_start_day": "Billing cycle start day",
-                    "social_tariff": "Social tariff"
+                    "social_tariff": "Social tariff",
+                    "subscription_id": "Subscription"
                 }
             }
+        },
+        "error": {
+            "invalid_auth": "The provided credentials are invalid.",
+            "cannot_connect": "Could not connect to Águas de Coimbra.",
+            "unknown": "Unknown error connecting to Águas de Coimbra.",
+            "no_subscriptions": "No subscription was found for this account.",
+            "subscription_required": "Please pick a subscription."
         }
     }
 }

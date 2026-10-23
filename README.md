@@ -1,11 +1,16 @@
-
 # Águas de Coimbra - Home Assistant Integration
 
-[![Validate with hassfest](https://github.com/andre19rodrigues/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml/badge.svg)](https://github.com/andre19rodrigues/hass-aguas-de-coimbra/actions/workflows/hassfest.yaml)
-[![License](https://img.shields.io/github/license/andre19rodrigues/hass-aguas-de-coimbra)](https://github.com/andre19rodrigues/hass-aguas-de-coimbra/blob/main/LICENSE)
-![Version](https://img.shields.io/github/v/tag/andre19rodrigues/hass-aguas-de-coimbra?label=version)
+![Version](https://img.shields.io/github/v/tag/jdrdionisio/hass-aguas-de-coimbra?label=version)
 
 **Disclaimer:** This integration is not affiliated with Águas de Coimbra.
+
+Personal fork of [andre19rodrigues/hass-aguas-de-coimbra](https://github.com/andre19rodrigues/hass-aguas-de-coimbra), kept close to upstream. It adds three things that upstream does not have yet:
+
+- **Subscription picker.** When the account has more than one subscription/site (a second house, a garage), the setup asks which meter to follow instead of silently using the first one in `listSubscriptions`.
+- **Meter lookup across subscriptions.** `getContadores` answers HTTP 500 for a subscription without a meter, so the chosen subscription is tried first and, if it has no meter, the remaining ones are tried before giving up.
+- **Token renewal.** The portal returns the token expiry in milliseconds; the original comparison in seconds made the token look permanently valid, so every request returned 401 until Home Assistant was restarted. The token is now renewed when it expires, and a rejected token is retried once after a fresh login.
+
+The fork does not run CI. There is no validation badge because there is no automation behind it — run `hassfest` yourself if you need that guarantee.
 
 This Home Assistant integration retrieves telemetry data from your water meter as published on the [Águas de Coimbra website](https://bdigital.aguasdecoimbra.pt/uPortal2/coimbra/index.html).
 
@@ -31,6 +36,7 @@ The integration comprises the following sensors:
 
 **Notes:** 
  - To prevent abuse of the Águas de Coimbra portal, this integration retrieves data only every 30 minutes and limits requests to essential information.
+ - `yesterday_consumption` is refetched after a restart and just after midnight, when the portal has not finished publishing the previous day. It can show `0` for a few hours and settle on the real value later in the morning.
  - The billing cycle cost shown is an estimate only. The actual amount on your invoice may differ due to factors such as:
    -  Missing or incomplete data;
    -   Use of an incorrect water meter diameter;
@@ -48,24 +54,38 @@ This estimate is provided for informational purposes only. Neither this integrat
 
 1. Go to **HACS > Integrations**.
 2. Click **⋮(three dots) > Custom Repositories**.
-3. Add this repository URL and select **Integration** as the category.
+3. Add `https://github.com/jdrdionisio/hass-aguas-de-coimbra` and select **Integration** as the category.
 4. Click **Add**.
-5. Restart Home Assistant.
-6. Go to the **Integrations** page and click **Add Integration**
-7. Search for **Águas de Coimbra** and install it.
+5. Install the integration from HACS.
+6. Restart Home Assistant.
+7. Go to the **Integrations** page and click **Add Integration**
+8. Search for **Águas de Coimbra** and install it.
+
+Requires Home Assistant 2024.11 or newer (declared in `hacs.json`).
 
 
 ### Option 2: Manual
 
 1. Download the contents of this repository.
-2. Copy the folder `aguas_de_coimbra` to your Home Assistant config folder under `custom_components/aguas_de_coimbra/`
-3. Restart Home Assistant.
-4. Go to the Integrations page and click Add Integration
-5. Search for Águas de Coimbra and install it.
+2. Copy the folder `custom_components/aguas_de_coimbra` to your Home Assistant config folder, at `config/custom_components/aguas_de_coimbra/`.
+3. Delete `custom_components/aguas_de_coimbra/__pycache__` if it exists.
+4. Restart Home Assistant.
+5. Go to the Integrations page and click Add Integration
+6. Search for Águas de Coimbra and install it.
+
+Updating an existing installation only means copying the folder again and restarting. Never remove the integration entry from **Devices & Services** to update it: a new entry gets new `unique_id`s and the sensor history is split from the old entities.
 
 
 ## ⚙️ Setup
 
-To configure the integration, please enter your credentials for the Águas de Coimbra portal. You may also optionally specify a custom billing cycle start date (default is day 1) and indicate whether the social tariff should be applied.
+Enter your credentials for the Águas de Coimbra portal, the billing cycle start day (default is day 1) and whether the social tariff applies. You do not choose the billing day from the portal's own data; set the day your invoice cycle starts.
+
+If the account has more than one subscription, a second step asks which one to follow, showing the subscription description and installation number. Accounts with a single subscription skip that step.
 
 ![configuration](https://github.com/user-attachments/assets/1d6e536f-4c3b-4cf6-ad64-98f64ff19e0a)
+
+### Changing the subscription later
+
+**Settings > Devices & Services > Águas de Coimbra > Configure**. The same screen has the credentials, the billing day, the social tariff and the subscription dropdown. Saving reloads the integration immediately; no restart is needed.
+
+The dropdown is filled live from the portal, so the portal must be reachable to open that screen. If it is not, the current subscription is kept and the remaining options can still be saved.

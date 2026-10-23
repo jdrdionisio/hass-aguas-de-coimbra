@@ -36,6 +36,7 @@ class AdCClient:
         billing_cycle_start_day: int,
         social_tariff: bool,
         session: ClientSession,
+        subscription_id: int | None = None,
     ):
         self._username = username
         self._password = password
@@ -43,8 +44,10 @@ class AdCClient:
         self._social_tariff = social_tariff
         self._codigo_marca = None
         self._codigo_produto = None
-        self._subscription_id = None
+        # Subscription chosen by the user; None means "whichever has a meter".
+        self._subscription_id = subscription_id
         self._subscription_ids = []
+        self._subscriptions = []
         self._numero_contador = None
         self._diameter = None
         self._token = None
@@ -104,15 +107,32 @@ class AdCClient:
                 raise Exception("Failed to fetch subscription ID")
 
             data = await resp.json()
+            self._subscriptions = data
             self._subscription_ids = [
                 sub["subscriptionId"] for sub in data if sub.get("subscriptionId")
             ]
 
+    @property
+    def subscription_choices(self) -> dict[str, str]:
+        """Return the account subscriptions as {id: human readable label}."""
+        choices: dict[str, str] = {}
+        for sub in self._subscriptions:
+            subscription_id = sub.get("subscriptionId")
+            if not subscription_id:
+                continue
+            label = sub.get("description") or str(subscription_id)
+            installation = sub.get("installationNumber")
+            if installation:
+                label = f"{label} ({installation})"
+            choices[str(subscription_id)] = label
+        return choices
+
     async def get_meter_details(self) -> dict:
         """Fetch meter details, trying each subscription of the account.
 
-        An account can have several subscriptions and not all of them have a
-        meter: getContadores returns HTTP 500 for a subscription without one.
+        The subscription chosen in the config flow is tried first. An account
+        can have several subscriptions and not all of them have a meter:
+        getContadores returns HTTP 500 for a subscription without one.
         """
 
         details_url = f"{BALCAO_DIGITAL_URL}uPortal2/coimbra/leituras/getContadores"
@@ -135,11 +155,18 @@ class AdCClient:
             ) as resp:
                 if resp.status != 200:
                     last_status = resp.status
-                    _LOGGER.debug(
-                        "getContadores for subscription %s returned HTTP %s",
-                        subscription_id,
-                        resp.status,
-                    )
+                    if subscription_id == self._subscription_id:
+                        _LOGGER.warning(
+                            "Subscription %s returned HTTP %s, trying another one",
+                            subscription_id,
+                            resp.status,
+                        )
+                    else:
+                        _LOGGER.debug(
+                            "getContadores for subscription %s returned HTTP %s",
+                            subscription_id,
+                            resp.status,
+                        )
                     continue
 
                 data = await resp.json()
